@@ -12,6 +12,10 @@ module Product
       all.find {|product| product.code == code }
     end
 
+    def reset!
+      @all = []
+    end
+
     alias :[] :get_by_code
   end
 

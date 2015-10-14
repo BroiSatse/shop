@@ -1,5 +1,6 @@
 describe Checkout::Service do
-  subject { described_class.new }
+  let(:options) { {} }
+  subject { described_class.new options }
 
   describe '#scan' do
     let(:code) { :code }
@@ -25,6 +26,24 @@ describe Checkout::Service do
     it 'returns the sum of prices of all items in the list' do
       expect(subject.total).to eq total_price
     end
+  end
+
+  describe '#list' do
+    let(:discount) { double }
+    let(:options) {{ discount: :mocked }}
+
+    before { allow(Checkout::Discount).to receive(:get_discount).and_return discount }
+    before { allow(discount).to receive(:process!) {|list| list.each {|item| item.price = :discounted }}}
+
+    before do
+      Product.add(:CODE, 'description', 15.00)
+      rand(3..6).times { subject.scan :CODE }
+    end
+
+    it 'returns a list with all discounts applied' do
+      expect(subject.list.map(&:price).uniq).to eq [:discounted]
+    end
+
   end
 
   class FakeLineItem

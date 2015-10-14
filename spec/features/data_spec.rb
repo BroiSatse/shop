@@ -1,7 +1,19 @@
 describe 'acceptance criteria' do
   let(:basket) { [] }
-  let(:checkout) { Checkout::Service.new }
+  let(:checkout) do
+    Checkout::Service.new(
+      two_for_one: { code: :FR1 },
+      threshold_discount: { code: :SR1, threshold: 3, discount: 0.50 }
+    )
+  end
   let(:total_price) { checkout.total }
+
+  before do
+    # Loading test product, so we don't rely on real prices
+    Product.add(:FR1, 'Fruit tea', 3.11)
+    Product.add(:SR1, 'Strawberries', 5.0)
+    Product.add(:CF1, 'Coffee', 11.23)
+  end
 
   example_data = [
       {
@@ -21,7 +33,7 @@ describe 'acceptance criteria' do
   example_data.each do |data|
     it 'is correct for first acceptance criteria' do
       data[:product_codes].each {|code| checkout.scan code }
-      total_price.should eq data[:expected_total]
+      expect(total_price).to eq data[:expected_total]
     end
   end
 end
